@@ -1,6 +1,7 @@
 import { type Request, type Response } from 'express';
 import { connectDb } from '../config/database.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 export async function login(req: Request, res: Response) {
 
@@ -11,8 +12,14 @@ export async function login(req: Request, res: Response) {
 
         const result = await connectDb(users, [username]);
 
-        if (result.rows.length === 0 || result.rows[0].password_hash !== password) {
+        if (result.rows.length === 0) {
             return res.status(401).json({ error: "Invalid Credentials"})
+        }
+
+        const isMatch = await bcrypt.compare(password, result.rows[0].password_hash);
+
+        if (!isMatch) {
+            return res.status(401).json({ error: "Invalid Credentials" });
         }
 
         const payload = {

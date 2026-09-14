@@ -1,4 +1,5 @@
 import { connectDb } from '../config/database.js';
+import bcrypt from 'bcrypt';
 
 export async function initUserTable() {
     const table = `Create Table IF NOT EXISTS users (
@@ -15,7 +16,10 @@ export async function initUserTable() {
         ON CONFLICT (username) DO NOTHING;
     `;
 
-    await connectDb(seedQuery, ['username', 'password']);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('adminpassword', saltRounds);
+
+    await connectDb(seedQuery, ['superadmin', hashedPassword]);
 
     console.log("Database table verified and connected");
 }
