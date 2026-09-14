@@ -36,3 +36,42 @@ export async function login(req: Request, res: Response) {
     }
 
 }
+
+export async function register(req: Request, res: Response) {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+    }
+
+    try {
+        const checkUserQuery = 'SELECT * FROM users WHERE username = $1';
+        const existingUser = await connectDb(checkUserQuery, [username]);
+
+        if (existingUser.rows.length > 0) {
+            return res.status(409).json({ error: "Username already exists" });
+        }
+
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        const insertQuery = `
+            INSERT INTO users (username, password_hash) 
+            VALUES ($1, $2) 
+            RETURNING id, username
+        `;
+        const newUser = await connectDb(insertQuery, [username, hashedPassword]);
+
+        const payload = {
+            id: newUser.rows[0].id,
+            username: newUser.rows[0].username
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+
+        res.status(201).json({ token });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}

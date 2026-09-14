@@ -13,4 +13,8 @@ INSERT INTO users (username, password_hash)
         ON CONFLICT (username) DO NOTHING;
 
 
-SELECT * FROM users WHERE username = $1`;
+SELECT * FROM users WHERE username = $1;
+
+INSERT INTO users (username, password_hash) 
+            VALUES ($1, $2) 
+            RETURNING id, username;
