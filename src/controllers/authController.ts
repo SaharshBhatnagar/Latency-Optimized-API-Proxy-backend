@@ -75,3 +75,32 @@ export async function register(req: Request, res: Response) {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+export async function resetPassword(req: Request, res: Response) {
+    const { username, newPassword } = req.body;
+
+    if (!username || !newPassword) {
+        return res.status(400).json({ error: "Username and new password are required" });
+    }
+
+    try {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        const updateQuery = `
+            UPDATE users 
+            SET password_hash = $1 
+            WHERE username = $2 
+            RETURNING id
+        `;
+        const result = await connectDb(updateQuery, [hashedPassword, username]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
