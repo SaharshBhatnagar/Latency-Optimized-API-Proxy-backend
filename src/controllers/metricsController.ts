@@ -1,9 +1,20 @@
 import { type Request, type Response } from 'express';
 import { connectDb } from '../config/database.js';
 import { createClient } from 'redis';
+import dns from 'dns/promises';
+
+let redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+if (!process.env.REDIS_URL || process.env.REDIS_URL.includes('127.0.0.1') || process.env.REDIS_URL.includes('localhost')) {
+    try {
+        await dns.lookup('proxy-redis');
+        redisUrl = 'redis://proxy-redis:6379';
+    } catch {
+    }
+}
 
 const redisClient = createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379'
+    url: redisUrl
 });
 
 redisClient.on('error', (err) => console.error('Backend Redis Error', err));
@@ -11,7 +22,6 @@ redisClient.connect().catch(console.error);
 
 export async function getSystemMetrics(req: Request, res: Response) {
     try {
-        
         const userQuery = 'SELECT COUNT(*) AS count FROM users';
         const dbResult = await connectDb(userQuery);
         const activeUsers = parseInt(dbResult.rows[0].count, 10);
