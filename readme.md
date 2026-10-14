@@ -5,7 +5,7 @@ The core logic and database management layer for the Latency-Optimized API Proxy
 ---
 
 ### Prerequisites
-Make sure you have Node.js and npm installed. You will also need a local PostgreSQL database running, ensure frontend and gateway are also running locally.
+Make sure you have Node.js and npm installed. You will also need a local PostgreSQL database running, and ensure the frontend and gateway services are also running locally.
 
 ## Getting Started
 
@@ -19,28 +19,31 @@ git clone https://github.com/SaharshBhatnagar/Latency-Optimized-API-Proxy-backen
 
 2. Navigate to the project directory:
 
-```Bash
+```bash
 cd Latency-Optimized-API-Proxy-backend
 ```
 
 3. Install dependencies:
 
-```Bash
+```bash
 npm install
 ```
 
 4. Create your environment file:
 
-Create a .env file in the root directory and configure your database and port settings:
+Create a .env file in the root directory and configure your database, port, and email settings:
 
-```Bash
+```bash
 PORT=5000
-DATABASE_URL=postgres://username:password@localhost:5432/your_database_name
+DATABASE_URL=postgresql://username:password@localhost:5432/clouddb
 JWT_SECRET=your_secure_jwt_secret
+REDIS_URL=redis://127.0.0.1:6380
+EMAIL_USER=your_email@gmail.com
+EMAIL_APP_PASSWORD=your_gmail_app_password
+FRONTEND_URL=https://proxy.saharshbhatnagar.app
 ```
 
-> **Note**: In a production AWS environment, the DATABASE_URL should point to your AWS RDS instance. Append `?ssl=true` to the URL if strict TLS is required by your RDS configuration.
-
+> **Note**: In production, the DATABASE_URL points to your AWS RDS PostgreSQL instance.
 
 5. Initialize the Database schema:
 
@@ -48,7 +51,7 @@ JWT_SECRET=your_secure_jwt_secret
 
 6. Start the development server:
 
-```Bash
+```bash
 npm run dev
 ```
 
@@ -58,13 +61,13 @@ npm run dev
 
 1. Compile the TypeScript source code:
 
-```Bash
+```bash
 npm run build
 ```
 
 2. Start the compiled production server:
 
-```Bash
+```bash
 npm start
 ```
 
@@ -72,20 +75,20 @@ npm start
 
 This backend service is fully containerized. To build and run the isolated Docker image locally:
 
-```Bash
+```bash
 docker build -t latency-optimized-api-proxy-backend .
 docker run -p 5000:5000 --env-file .env latency-optimized-api-proxy-backend
 ```
 
 If you are running the full stack locally via Docker Compose, use:
 
-```Bash
+```bash
 docker compose up -d backend
 ```
 
 ## Directory Structure
 
-```Plaintext
+```plaintext
 Latency-Optimized-API-Proxy-backend/
 ├── .github/workflows/deploy.yml
 ├── src/
@@ -105,15 +108,13 @@ Latency-Optimized-API-Proxy-backend/
 │       ├── metricsRoutes.ts 
 │       └── index.ts         
 ├── Dockerfile               
-├── nginx.conf               
 ├── package.json             
 └── tsconfig.json            
 ```
 
 ## CI/CD Pipeline
 
-> This repository includes a GitHub Actions workflow (`deploy.yml`) that automatically builds the Docker image and pushes it to Amazon Elastic Container Registry (ECR) upon pushes to the main branch. Ensure your AWS IAM credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are stored safely in GitHub Repository Secrets.
-
+> This repository includes a GitHub Actions workflow (`deploy.yml`) that automatically builds the Docker image, pushes it to Amazon Elastic Container Registry (ECR), and automatically deploys to your EC2 instance via SSH upon pushes to the main branch. Ensure your AWS IAM credentials and EC2 SSH secrets are stored safely in GitHub Repository Secrets.
 
 ### Additional Documentation
 
