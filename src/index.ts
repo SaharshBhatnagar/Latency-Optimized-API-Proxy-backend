@@ -16,8 +16,13 @@ app.use('/api/auth', authRouter);
 
 app.use('/api/metrics', metricsRoutes);
 
-await initUserTable();
+try {
+    await initUserTable();
+    console.log('Database initialized successfully');
+} catch (err) {
+    console.error('Failed to initialize database tables:', err);
+}
 
 app.listen(PORT, () => {
-    console.log('Server is listening on port... ', PORT as any)
+    console.log('Server is listening on port... ', PORT as any);
 });
